@@ -1,0 +1,2023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLARITY ACCOUNTANCY GROUP</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+        .input-focus:focus {
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="app">
+        <header class="gradient-bg text-white shadow-lg">
+            <div class="container mx-auto px-4 py-6">
+                <h1 class="text-3xl font-bold">💰 CLARITY ACCOUNTANCY GROUP</h1>
+                <p class="text-blue-100">Simple and Intuitive Bookkeeping</p>
+            </div>
+        </header>
+
+        <div class="container mx-auto px-4 py-6">
+            <div class="bg-white rounded-lg card-shadow p-6 mb-6">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Select or Create Business Entity</h2>
+                <div class="flex flex-col md:flex-row gap-4 mb-4">
+                    <div class="flex-1">
+                        <select id="businessSelect" class="w-full p-3 border border-gray-300 rounded-lg input-focus">
+                            <option value="">Select existing business...</option>
+                        </select>
+                    </div>
+                    <div class="flex-1">
+                        <input type="text" id="newBusinessName" placeholder="Enter new business name..." 
+                               class="w-full p-3 border border-gray-300 rounded-lg input-focus">
+                    </div>
+                    <button onclick="createBusiness()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg transition duration-200">
+                        Create Business
+                    </button>
+                </div>
+                <div class="flex gap-2">
+                    <input type="file" id="fileInput" accept=".xlsx,.xls" class="hidden">
+                    <button onclick="document.getElementById('fileInput').click()" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm">
+                        📁 Import Excel File
+                    </button>
+                    <button onclick="exportToExcel()" 
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm"
+                            id="exportBtn" disabled>
+                        📤 Export to Excel
+                    </button>
+                </div>
+            </div>
+
+            <div id="mainContent" class="hidden">
+                <div class="bg-white rounded-lg card-shadow mb-6">
+                    <div class="flex flex-wrap border-b">
+                        <button onclick="showTab('entry', this)" class="tab-btn px-6 py-3 font-medium text-indigo-600 border-b-2 border-indigo-600">
+                            Data Entry
+                        </button>
+                        <button onclick="showTab('sales', this)" class="tab-btn px-6 py-3 font-medium text-gray-500 hover:text-indigo-600">
+                            Sales Report
+                        </button>
+                        <button onclick="showTab('purchases', this)" class="tab-btn px-6 py-3 font-medium text-gray-500 hover:text-indigo-600">
+                            Purchases Report
+                        </button>
+                        <button onclick="showTab('income', this)" class="tab-btn px-6 py-3 font-medium text-gray-500 hover:text-indigo-600">
+                            Income Statement
+                        </button>
+                        <button onclick="showTab('balance', this)" class="tab-btn px-6 py-3 font-medium text-gray-500 hover:text-indigo-600">
+                            Balance Sheet
+                        </button>
+                        <button onclick="showTab('trialBalance', this)" class="tab-btn px-6 py-3 font-medium text-gray-500 hover:text-indigo-600">
+                            Trial Balance
+                        </button>
+                        <button onclick="showTab('openingBalances', this)" class="tab-btn px-6 py-3 font-medium text-gray-500 hover:text-indigo-600">
+                            Opening Balances
+                        </button>
+                         <button onclick="showTab('taxCalculation', this)" class="tab-btn px-6 py-3 font-medium text-gray-500 hover:text-indigo-600">
+                            Tax Calculation
+                        </button>
+                    </div>
+                </div>
+
+                <div id="entryTab" class="tab-content">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-lg card-shadow p-6">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Add Transaction</h3>
+                            <form id="transactionForm" class="space-y-4">
+                                <input type="hidden" id="transactionId">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                                    <input type="date" id="transactionDate" class="w-full p-3 border border-gray-300 rounded-lg input-focus" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                                    <select id="transactionType" class="w-full p-3 border border-gray-300 rounded-lg input-focus" required>
+                                        <option value="">Select type...</option>
+                                        <option value="sale">Sale</option>
+                                        <option value="purchase_for_resale">Purchase (Goods for Resale)</option>
+                                        <option value="expense">Expense (e.g., Utilities, Wages, Rent)</option>
+                                        <option value="asset_purchase">Asset Purchase (e.g., Computer, Vehicle)</option>
+                                        <option value="loan_received">Loan Received</option>
+                                        <option value="loan_repayment">Loan Repayment</option>
+                                        <option value="owner_capital">Owner Capital Injection</option>
+                                        <option value="owner_drawings">Owner Drawings</option>
+                                        <option value="cash_transfer_to_bank">Cash Transfer to Bank</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                                    <input type="text" id="transactionDesc" placeholder="e.g., Online sale, Stock order, Electricity Bill" 
+                                           class="w-full p-3 border border-gray-300 rounded-lg input-focus" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                                    <input type="number" id="transactionAmount" step="0.01" placeholder="0.00" 
+                                           class="w-full p-3 border border-gray-300 rounded-lg input-focus" required>
+                                </div>
+                                <div id="categoryContainer">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                                    <input type="text" id="transactionCategory" placeholder="e.g., Online, Electronics, Rent, Wages..." 
+                                           class="w-full p-3 border border-gray-300 rounded-lg input-focus">
+                                    <p class="text-xs text-gray-500 mt-1">For assets, categorize broadly (e.g., "Vehicle," "Office Equipment").</p>
+                                </div>
+                                <div id="depreciationRateContainer" class="hidden">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Annual Depreciation Rate (%)</label>
+                                    <input type="number" id="depreciationRate" step="0.1" placeholder="10" 
+                                           class="w-full p-3 border border-gray-300 rounded-lg input-focus">
+                                    <p class="text-xs text-gray-500 mt-1">Enter the annual percentage rate for depreciation (e.g., 10 for 10%).</p>
+                                </div>
+                                <div id="paymentMethodContainer">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Payment Method / Received Into</label>
+                                    <select id="paymentMethod" class="w-full p-3 border border-gray-300 rounded-lg input-focus">
+                                        <option value="cash_at_hand">Cash at Hand</option>
+                                        <option value="cash_at_bank">Cash at Bank</option>
+                                    </select>
+                                </div>
+                                <button type="submit" id="addUpdateBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg transition duration-200">
+                                    Add Transaction
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="bg-white rounded-lg card-shadow p-6">
+                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Recent Transactions</h3>
+                            <div id="recentTransactions" class="space-y-3 max-h-96 overflow-y-auto">
+                                <p class="text-gray-500 text-center py-8">No transactions yet. Add your first transaction!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="salesTab" class="tab-content hidden">
+                    <div class="bg-white rounded-lg card-shadow p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Sales Report</h3>
+                        <div id="salesReport"></div>
+                    </div>
+                </div>
+
+                <div id="purchasesTab" class="tab-content hidden">
+                    <div class="bg-white rounded-lg card-shadow p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Purchases Report</h3>
+                        <div id="purchasesReport"></div>
+                    </div>
+                </div>
+
+                <div id="incomeTab" class="tab-content hidden">
+                    <div class="bg-white rounded-lg card-shadow p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Income Statement</h3>
+                        <div class="mb-4 p-4 bg-blue-50 rounded-lg">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Closing Stock Value for this Period (Ksh)</label>
+                            <input type="number" id="closingStockInput" step="0.01" value="0.00" 
+                                   class="w-full p-3 border border-gray-300 rounded-lg input-focus" 
+                                   onchange="updateIncomeStatement();">
+                            <p class="text-xs text-gray-500 mt-1">Enter the physical value of inventory remaining at the end of your reporting period to calculate Cost of Goods Sold.</p>
+                        </div>
+                        <div id="incomeStatement"></div>
+                    </div>
+                </div>
+
+                <div id="balanceTab" class="tab-content hidden">
+                    <div class="bg-white rounded-lg card-shadow p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Balance Sheet</h3>
+                        <div id="balanceSheet"></div>
+                    </div>
+                </div>
+
+                <div id="trialBalanceTab" class="tab-content hidden">
+                    <div class="bg-white rounded-lg card-shadow p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Trial Balance</h3>
+                        <div id="trialBalance"></div>
+                    </div>
+                </div>
+
+                <div id="openingBalancesTab" class="tab-content hidden">
+                    <div class="bg-white rounded-lg card-shadow p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Set Opening Balances</h3>
+                        <form id="openingBalancesForm" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Cash at Hand</label>
+                                <input type="number" id="openingCashAtHand" step="0.01" placeholder="0.00" 
+                                       class="w-full p-3 border border-gray-300 rounded-lg input-focus">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Cash at Bank</label>
+                                <input type="number" id="openingCashAtBank" step="0.01" placeholder="0.00" 
+                                       class="w-full p-3 border border-gray-300 rounded-lg input-focus">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Stock / Inventory (Beginning Balance)</label>
+                                <input type="number" id="openingStock" step="0.01" placeholder="0.00" 
+                                       class="w-full p-3 border border-gray-300 rounded-lg input-focus">
+                                <p class="text-xs text-gray-500 mt-1">Value of goods for resale you have at the very beginning.</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Loans Payable</label>
+                                <input type="number" id="openingLoans" step="0.01" placeholder="0.00" 
+                                       class="w-full p-3 border border-gray-300 rounded-lg input-focus">
+                            </div>
+
+                            <h4 class="text-lg font-semibold text-gray-800 mt-6 mb-3">Opening Fixed Assets</h4>
+                            <div id="openingAssetsList" class="space-y-3 mb-4">
+                                <p class="text-gray-500 text-center py-4">No opening assets added yet.</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Asset Description</label>
+                                    <input type="text" id="newOpeningAssetDesc" placeholder="e.g., Laptop, Delivery Van"
+                                           class="w-full p-3 border border-gray-300 rounded-lg input-focus">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Purchase Value</label>
+                                    <input type="number" id="newOpeningAssetValue" step="0.01" placeholder="0.00"
+                                           class="w-full p-3 border border-gray-300 rounded-lg input-focus">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Annual Depreciation Rate (%)</label>
+                                    <input type="number" id="newOpeningAssetDepreciationRate" step="0.1" placeholder="10"
+                                           class="w-full p-3 border border-gray-300 rounded-lg input-focus">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Purchase Date</label>
+                                    <input type="date" id="newOpeningAssetDate"
+                                           class="w-full p-3 border border-gray-300 rounded-lg input-focus">
+                                </div>
+                            </div>
+                            <button type="button" onclick="addOpeningAsset()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition duration-200 mt-4">
+                                Add Opening Asset
+                            </button>
+
+                            <button type="button" onclick="saveOpeningBalances()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg transition duration-200 mt-6">
+                                Save Opening Balances
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="taxCalculationTab" class="tab-content hidden">
+                    <div class="bg-white rounded-lg card-shadow p-6">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Tax Calculation</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Kenyan Corporate Tax Rate (%)</label>
+                                <input type="number" id="taxRateInput" step="0.1" min="0" max="100" placeholder="30"
+                                       class="w-full p-3 border border-gray-300 rounded-lg input-focus" onchange="saveTaxRate(); updateAllReports();">
+                                <p class="text-xs text-gray-500 mt-1">Enter the annual corporate tax rate applicable in Kenya (e.g., 30 for 30%).</p>
+                            </div>
+                            <div class="bg-yellow-50 p-4 rounded-lg">
+                                <h4 class="font-semibold text-yellow-800 mb-2">Current Tax Position</h4>
+                                <div class="flex justify-between items-center py-1">
+                                    <span class="font-medium">Net Income Before Tax:</span>
+                                    <span id="netIncomeBeforeTax" class="font-bold">Ksh 0.00</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1">
+                                    <span class="font-medium">Income Tax Expense:</span>
+                                    <span id="incomeTaxExpense" class="font-bold text-red-600">Ksh 0.00</span>
+                                </div>
+                                <hr class="my-2 border-gray-300">
+                                <div class="flex justify-between items-center py-1 text-lg">
+                                    <span class="font-bold">Net Income After Tax:</span>
+                                    <span id="netIncomeAfterTax" class="font-bold text-green-600">Ksh 0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        let businesses = {};
+        let currentBusiness = null;
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBusinesses();
+            setupEventListeners();
+            document.getElementById('transactionDate').valueAsDate = new Date();
+            document.getElementById('newOpeningAssetDate').valueAsDate = new Date(); 
+        });
+
+        function setupEventListeners() {
+            // Business selection
+            document.getElementById('businessSelect').addEventListener('change', function() {
+                selectBusiness(this.value);
+            });
+
+            // File import
+            document.getElementById('fileInput').addEventListener('change', handleFileImport);
+
+            // Transaction form
+            document.getElementById('transactionForm').addEventListener('submit', addUpdateTransaction);
+            document.getElementById('transactionType').addEventListener('change', toggleFormVisibility);
+            toggleFormVisibility(); // Set initial visibility
+        }
+
+        function toggleFormVisibility() {
+            const type = document.getElementById('transactionType').value;
+            const paymentMethodContainer = document.getElementById('paymentMethodContainer');
+            const depreciationRateContainer = document.getElementById('depreciationRateContainer');
+            const categoryContainer = document.getElementById('categoryContainer');
+
+
+            // Hide by default, then show based on type
+            paymentMethodContainer.classList.add('hidden');
+            depreciationRateContainer.classList.add('hidden');
+            categoryContainer.classList.remove('hidden'); // Show category by default
+
+            if (type === 'cash_transfer_to_bank') {
+                paymentMethodContainer.classList.add('hidden'); // No specific payment method needed for transfer
+                categoryContainer.classList.add('hidden'); // Hide category for simple transfer
+            } else if (['sale', 'purchase_for_resale', 'expense', 'asset_purchase', 'loan_received', 'loan_repayment', 'owner_capital', 'owner_drawings'].includes(type)) {
+                paymentMethodContainer.classList.remove('hidden');
+            }
+
+            if (type === 'asset_purchase') {
+                depreciationRateContainer.classList.remove('hidden');
+            }
+        }
+
+        function createBusiness() {
+            const name = document.getElementById('newBusinessName').value.trim();
+            if (!name) {
+                alert('Please enter a business name');
+                return;
+            }
+
+            if (businesses[name]) {
+                alert('Business already exists');
+                return;
+            }
+
+            businesses[name] = {
+                name: name,
+                transactions: [],
+                assets: [], // To store details of assets from transactions
+                created: new Date().toISOString(),
+                openingBalances: { 
+                    cashAtHand: 0,
+                    cashAtBank: 0,
+                    stock: 0, // Added for opening inventory
+                    assets: [], // Array for opening assets
+                    loans: 0
+                },
+                taxRate: 30 // Default Kenyan corporate tax rate
+            };
+
+            updateBusinessSelect();
+            selectBusiness(name);
+            document.getElementById('newBusinessName').value = '';
+            
+            alert(`Business entity "${name}" created successfully!`);
+            saveBusinesses();
+        }
+
+        function selectBusiness(businessName) {
+            if (!businessName || !businesses[businessName]) {
+                currentBusiness = null;
+                document.getElementById('mainContent').classList.add('hidden');
+                document.getElementById('exportBtn').disabled = true;
+                return;
+            }
+
+            currentBusiness = businessName;
+            document.getElementById('mainContent').classList.remove('hidden');
+            document.getElementById('exportBtn').disabled = false;
+            updateRecentTransactions();
+            updateAllReports();
+            updateOpeningBalancesUI(); 
+            // Reset transaction form when changing business
+            document.getElementById('transactionForm').reset();
+            document.getElementById('transactionDate').valueAsDate = new Date();
+            document.getElementById('transactionId').value = ''; // Clear hidden ID
+            document.getElementById('addUpdateBtn').textContent = 'Add Transaction';
+            toggleFormVisibility(); // Ensure correct visibility after selection
+            // Load tax rate for the selected business
+            document.getElementById('taxRateInput').value = businesses[currentBusiness].taxRate;
+            // Reset closing stock input
+            document.getElementById('closingStockInput').value = 0;
+            // Show initial tab
+            showTab('entry', document.querySelector('.tab-btn'));
+        }
+
+        function addUpdateTransaction(e) {
+            e.preventDefault();
+            
+            if (!currentBusiness) {
+                alert('Please select a business entity first');
+                return;
+            }
+
+            const transactionId = document.getElementById('transactionId').value;
+            const type = document.getElementById('transactionType').value;
+            const description = document.getElementById('transactionDesc').value;
+            const amount = parseFloat(document.getElementById('transactionAmount').value);
+            const category = document.getElementById('transactionCategory').value.trim();
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            let depreciationRate = 0; // Default
+
+            if (isNaN(amount) || amount <= 0) {
+                alert('Please enter a valid positive amount.');
+                return;
+            }
+            
+            if (type === 'cash_transfer_to_bank') {
+                if (description === '' || description === null) {
+                    // Set a default description for cash transfers if none is provided
+                    document.getElementById('transactionDesc').value = 'Cash transfer from hand to bank';
+                }
+                // No category or payment method for this type
+            } else {
+                if (type === 'asset_purchase') {
+                    depreciationRate = parseFloat(document.getElementById('depreciationRate').value);
+                    if (isNaN(depreciationRate) || depreciationRate < 0 || depreciationRate > 100) {
+                        alert('Please enter a valid annual depreciation rate (0-100).');
+                        return;
+                    }
+                }
+            }
+
+
+            const newTransaction = {
+                id: transactionId ? parseInt(transactionId) : Date.now(),
+                date: document.getElementById('transactionDate').value,
+                type: type,
+                description: document.getElementById('transactionDesc').value, // Use the potentially updated description
+                amount: amount,
+                category: type === 'cash_transfer_to_bank' ? 'Cash Transfer' : (category || 'General'),
+                paymentMethod: type === 'cash_transfer_to_bank' ? 'transfer_from_cash_at_hand' : paymentMethod 
+            };
+
+            if (type === 'asset_purchase') {
+                newTransaction.depreciationRate = depreciationRate; // Store depreciation rate
+            }
+
+
+            if (transactionId) {
+                // Editing existing transaction
+                const index = businesses[currentBusiness].transactions.findIndex(t => t.id === newTransaction.id);
+                if (index !== -1) {
+                    // Handle asset specific updates if type changed or category changed
+                    const oldTransaction = businesses[currentBusiness].transactions[index];
+                    if (oldTransaction.type === 'asset_purchase' && newTransaction.type !== 'asset_purchase') {
+                        // If old was asset but new is not, remove from assets list
+                        businesses[currentBusiness].assets = businesses[currentBusiness].assets.filter(a => a.transactionId !== oldTransaction.id);
+                    } else if (newTransaction.type === 'asset_purchase') {
+                        // If new is asset, update or add to assets list
+                        const assetIndex = businesses[currentBusiness].assets.findIndex(a => a.transactionId === newTransaction.id);
+                        if (assetIndex !== -1) {
+                            businesses[currentBusiness].assets[assetIndex] = {
+                                transactionId: newTransaction.id,
+                                purchaseDate: newTransaction.date,
+                                purchaseValue: newTransaction.amount,
+                                depreciationRate: newTransaction.depreciationRate,
+                                description: newTransaction.description
+                            };
+                        } else {
+                            businesses[currentBusiness].assets.push({
+                                transactionId: newTransaction.id,
+                                purchaseDate: newTransaction.date,
+                                purchaseValue: newTransaction.amount,
+                                depreciationRate: newTransaction.depreciationRate,
+                                description: newTransaction.description
+                            });
+                        }
+                    }
+                    businesses[currentBusiness].transactions[index] = newTransaction;
+                    alert('Transaction updated successfully!');
+                }
+            } else {
+                // Adding new transaction
+                businesses[currentBusiness].transactions.push(newTransaction);
+                if (newTransaction.type === 'asset_purchase') {
+                    businesses[currentBusiness].assets.push({
+                        transactionId: newTransaction.id,
+                        purchaseDate: newTransaction.date,
+                        purchaseValue: newTransaction.amount,
+                        depreciationRate: newTransaction.depreciationRate,
+                        description: newTransaction.description
+                    });
+                }
+                alert('Transaction added successfully!');
+            }
+            
+            // Reset form
+            document.getElementById('transactionForm').reset();
+            document.getElementById('transactionDate').valueAsDate = new Date();
+            document.getElementById('transactionId').value = ''; // Clear hidden ID
+            document.getElementById('addUpdateBtn').textContent = 'Add Transaction'; // Reset button text
+            toggleFormVisibility(); // Reset visibility
+
+            updateRecentTransactions();
+            updateAllReports();
+            saveBusinesses(); // Save data after adding/updating transaction
+        }
+
+        function editTransaction(id) {
+            const transaction = businesses[currentBusiness].transactions.find(t => t.id === id);
+            if (transaction) {
+                document.getElementById('transactionId').value = transaction.id;
+                document.getElementById('transactionDate').value = transaction.date;
+                document.getElementById('transactionType').value = transaction.type;
+                document.getElementById('transactionDesc').value = transaction.description;
+                document.getElementById('transactionAmount').value = transaction.amount;
+                document.getElementById('transactionCategory').value = transaction.category;
+                document.getElementById('paymentMethod').value = transaction.paymentMethod || 'cash_at_hand'; // Default if not set
+                
+                if (transaction.type === 'asset_purchase') {
+                    document.getElementById('depreciationRate').value = transaction.depreciationRate;
+                }
+                toggleFormVisibility(); // Update visibility based on type
+
+                document.getElementById('addUpdateBtn').textContent = 'Update Transaction';
+            }
+        }
+
+        function deleteTransaction(id) {
+            if (!currentBusiness) return;
+
+            if (confirm('Are you sure you want to delete this transaction?')) {
+                businesses[currentBusiness].transactions = businesses[currentBusiness].transactions.filter(t => t.id !== id);
+                // Also remove from assets list if it was an asset from a transaction
+                businesses[currentBusiness].assets = businesses[currentBusiness].assets.filter(a => a.transactionId !== id);
+                
+                updateRecentTransactions();
+                updateAllReports();
+                saveBusinesses();
+                alert('Transaction deleted successfully!');
+            }
+        }
+
+        function updateBusinessSelect() {
+            const select = document.getElementById('businessSelect');
+            select.innerHTML = '<option value="">Select existing business...</option>';
+            
+            Object.keys(businesses).forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                select.appendChild(option);
+            });
+        }
+
+        function updateRecentTransactions() {
+            if (!currentBusiness) return;
+
+            const container = document.getElementById('recentTransactions');
+            // Sort by date descending and then by ID (for consistent order if dates are same)
+            const transactions = [...businesses[currentBusiness].transactions]
+                .sort((a, b) => new Date(b.date) - new Date(a.date) || b.id - a.id)
+                .slice(0, 10); // Show only most recent 10
+
+            if (transactions.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No transactions yet. Add your first transaction!</p>';
+                return;
+            }
+
+            // Helper to format transaction type for display
+            function formatTransactionType(type) {
+                switch(type) {
+                    case 'purchase_for_resale': return 'Purchase (for Resale)';
+                    case 'asset_purchase': return 'Asset Purchase';
+                    case 'loan_received': return 'Loan Received';
+                    case 'loan_repayment': return 'Loan Repayment';
+                    case 'owner_capital': return 'Owner Capital';
+                    case 'owner_drawings': return 'Owner Drawings';
+                    case 'expense': return 'Expense';
+                    case 'cash_transfer_to_bank': return 'Cash Transfer to Bank';
+                    default: return type.replace(/_/g, ' ');
+                }
+            }
+
+            container.innerHTML = transactions.map(t => `
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <div>
+                        <div class="font-medium text-gray-800">${t.description}</div>
+                        <div class="text-sm text-gray-500">${t.date} • ${t.category}</div>
+                    </div>
+                    <div class="text-right flex items-center space-x-2">
+                        <div class="font-bold ${['sale', 'loan_received', 'owner_capital', 'cash_transfer_to_bank'].includes(t.type) ? 'text-green-600' : 'text-red-600'}">
+                            ${['sale', 'loan_received', 'owner_capital', 'cash_transfer_to_bank'].includes(t.type) ? '+' : '-'}Ksh${t.amount.toFixed(2)}
+                        </div>
+                        <div class="text-xs text-gray-500 capitalize">${formatTransactionType(t.type)}</div>
+                        <button onclick="editTransaction(${t.id})" class="text-blue-500 hover:text-blue-700 text-sm font-medium">Edit</button>
+                        <button onclick="deleteTransaction(${t.id})" class="text-red-500 hover:text-red-700 text-sm font-medium">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showTab(tabName, clickedButton) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+
+            // Remove active state from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600');
+                btn.classList.add('text-gray-500');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.remove('hidden');
+
+            // Activate button
+            if (clickedButton) {
+                clickedButton.classList.remove('text-gray-500');
+                clickedButton.classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600');
+            }
+
+            // Update reports/UI if needed for specific tabs
+            updateAllReports(); // Always update all reports when switching tabs
+            if (tabName === 'openingBalances') {
+                updateOpeningBalancesUI();
+            }
+            if (tabName === 'taxCalculation') {
+                updateTaxCalculationUI();
+            }
+        }
+
+        function updateAllReports() {
+            if (!currentBusiness) return;
+
+            updateSalesReport();
+            updatePurchasesReport();
+            updateIncomeStatement();
+            updateBalanceSheet();
+            updateTrialBalance(); 
+            updateTaxCalculationUI(); // Ensure tax UI is updated too
+        }
+
+        function updateSalesReport() {
+            const transactions = businesses[currentBusiness].transactions;
+            const sales = transactions.filter(t => t.type === 'sale');
+            
+            const totalSales = sales.reduce((sum, t) => sum + t.amount, 0);
+            const salesByCategory = {};
+            
+            sales.forEach(sale => {
+                salesByCategory[sale.category] = (salesByCategory[sale.category] || 0) + sale.amount;
+            });
+
+            const container = document.getElementById('salesReport');
+            container.innerHTML = `
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-green-800 mb-2">Total Sales</h4>
+                        <p class="text-2xl font-bold text-green-600">Ksh ${totalSales.toFixed(2)}</p>
+                        <p class="text-sm text-green-600">${sales.length} transactions</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-blue-800 mb-2">Sales by Category</h4>
+                        ${Object.entries(salesByCategory).map(([cat, amount]) => 
+                            `<div class="flex justify-between text-sm"><span>${cat}</span><span>Ksh ${amount.toFixed(2)}</span></div>`
+                        ).join('')}
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <h4 class="font-semibold mb-3">Recent Sales Transactions</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="p-2 text-left">Date</th>
+                                    <th class="p-2 text-left">Description</th>
+                                    <th class="p-2 text-left">Category</th>
+                                    <th class="p-2 text-right">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${sales.slice(-10).reverse().map(sale => `
+                                    <tr class="border-b">
+                                        <td class="p-2">${sale.date}</td>
+                                        <td class="p-2">${sale.description}</td>
+                                        <td class="p-2">${sale.category}</td>
+                                        <td class="p-2 text-right font-medium">Ksh ${sale.amount.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updatePurchasesReport() {
+            const transactions = businesses[currentBusiness].transactions;
+            const purchases = transactions.filter(t => t.type === 'purchase_for_resale');
+            
+            const totalPurchases = purchases.reduce((sum, t) => sum + t.amount, 0);
+            const purchasesByCategory = {};
+            
+            purchases.forEach(purchase => {
+                purchasesByCategory[purchase.category] = (purchasesByCategory[purchase.category] || 0) + purchase.amount;
+            });
+
+            const container = document.getElementById('purchasesReport');
+            container.innerHTML = `
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-red-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-red-800 mb-2">Total Purchases (for Resale)</h4>
+                        <p class="text-2xl font-bold text-red-600">Ksh ${totalPurchases.toFixed(2)}</p>
+                        <p class="text-sm text-red-600">${purchases.length} transactions</p>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-orange-800 mb-2">Purchases by Category</h4>
+                        ${Object.entries(purchasesByCategory).map(([cat, amount]) => 
+                            `<div class="flex justify-between text-sm"><span>${cat}</span><span>Ksh ${amount.toFixed(2)}</span></div>`
+                        ).join('')}
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <h4 class="font-semibold mb-3">Recent Purchases for Resale Transactions</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="p-2 text-left">Date</th>
+                                    <th class="p-2 text-left">Description</th>
+                                    <th class="p-2 text-left">Category</th>
+                                    <th class="p-2 text-right">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${purchases.slice(-10).reverse().map(purchase => `
+                                    <tr class="border-b">
+                                        <td class="p-2">${purchase.date}</td>
+                                        <td class="p-2">${purchase.description}</td>
+                                        <td class="p-2">${purchase.category}</td>
+                                        <td class="p-2 text-right font-medium">Ksh ${purchase.amount.toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Combines both transactional and opening assets for depreciation calculation
+        function getAllAssetsForDepreciation() {
+            const transactionalAssets = businesses[currentBusiness].assets || [];
+            const openingAssets = businesses[currentBusiness].openingBalances.assets || [];
+            return [...transactionalAssets, ...openingAssets];
+        }
+
+        function calculateDepreciation(assetsToDepreciate, asOfDate = new Date()) {
+            let totalDepreciation = 0;
+            assetsToDepreciate.forEach(asset => {
+                const purchaseDate = new Date(asset.purchaseDate);
+                // Ensure purchaseDate is valid before calculating difference
+                if (isNaN(purchaseDate.getTime())) {
+                    console.warn(`Invalid purchase date for asset: ${asset.description}, Date: ${asset.purchaseDate}`);
+                    return; 
+                }
+                const yearsOwned = (asOfDate - purchaseDate) / (1000 * 60 * 60 * 24 * 365.25); // Account for leap years
+                
+                if (yearsOwned > 0 && asset.depreciationRate > 0) {
+                    const annualDepreciationAmount = asset.purchaseValue * (asset.depreciationRate / 100);
+                    const accumulatedDepreciation = annualDepreciationAmount * yearsOwned;
+                    // Cap depreciation at asset's original value
+                    totalDepreciation += Math.min(accumulatedDepreciation, asset.purchaseValue);
+                }
+            });
+            return totalDepreciation;
+        }
+
+        function getIncomeStatementFigures() {
+            const transactions = businesses[currentBusiness].transactions;
+            const allAssets = getAllAssetsForDepreciation(); 
+            const asOfDate = new Date(); 
+            const taxRate = businesses[currentBusiness].taxRate || 0; // Get tax rate
+
+            const totalSales = transactions.filter(t => t.type === 'sale').reduce((sum, t) => sum + t.amount, 0);
+            
+            // COGS Calculation (Periodic Inventory Method)
+            const openingStock = businesses[currentBusiness].openingBalances.stock || 0;
+            const totalPurchasesForResale = transactions.filter(t => t.type === 'purchase_for_resale').reduce((sum, t) => sum + t.amount, 0);
+            const closingStock = parseFloat(document.getElementById('closingStockInput').value) || 0; // User input for closing stock
+
+            const costOfGoodsSold = openingStock + totalPurchasesForResale - closingStock;
+            
+            const grossProfit = totalSales - costOfGoodsSold;
+
+            let operatingExpenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+            
+            const loanInterestExpense = transactions.filter(t => t.category === 'Loan Interest' && t.type === 'loan_repayment')
+                                                    .reduce((sum, t) => sum + t.amount, 0);
+
+            const depreciationExpense = calculateDepreciation(allAssets, asOfDate);
+            
+            const totalOperatingExpenses = operatingExpenses + loanInterestExpense + depreciationExpense;
+
+            const netIncomeBeforeTax = grossProfit - totalOperatingExpenses;
+            
+            const incomeTaxExpense = Math.max(0, netIncomeBeforeTax) * (taxRate / 100); // Tax only on positive income
+            
+            const netIncomeAfterTax = netIncomeBeforeTax - incomeTaxExpense;
+
+            return {
+                totalSales,
+                openingStock,
+                totalPurchasesForResale,
+                closingStock,
+                costOfGoodsSold,
+                grossProfit,
+                operatingExpenses,
+                loanInterestExpense,
+                depreciationExpense,
+                totalOperatingExpenses,
+                netIncomeBeforeTax,
+                incomeTaxExpense,
+                netIncomeAfterTax
+            };
+        }
+
+        function updateIncomeStatement() {
+            const {
+                totalSales,
+                openingStock,
+                totalPurchasesForResale,
+                closingStock,
+                costOfGoodsSold,
+                grossProfit,
+                operatingExpenses,
+                loanInterestExpense,
+                depreciationExpense,
+                totalOperatingExpenses,
+                netIncomeBeforeTax,
+                incomeTaxExpense,
+                netIncomeAfterTax
+            } = getIncomeStatementFigures();
+
+
+            const container = document.getElementById('incomeStatement');
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="bg-gradient-to-r from-green-50 to-blue-50 p-6 rounded-lg">
+                        <h4 class="text-lg font-semibold mb-4">Income Statement Summary</h4>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">Total Sales:</span>
+                                <span class="text-green-600 font-bold">Ksh ${totalSales.toFixed(2)}</span>
+                            </div>
+                            <hr class="border-gray-300">
+                            <h5 class="font-semibold mt-4 mb-2">Cost of Goods Sold (COGS):</h5>
+                            <div class="flex justify-between items-center ml-2">
+                                <span>Opening Stock:</span>
+                                <span>Ksh ${openingStock.toFixed(2)}</span>
+                            </div>
+                            <div class="flex justify-between items-center ml-2">
+                                <span>Add: Purchases for Resale:</span>
+                                <span>Ksh ${totalPurchasesForResale.toFixed(2)}</span>
+                            </div>
+                            <div class="flex justify-between items-center ml-2">
+                                <span>Less: Closing Stock:</span>
+                                <span>(Ksh ${closingStock.toFixed(2)})</span>
+                            </div>
+                            <hr class="border-gray-300">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold">Cost of Goods Sold:</span>
+                                <span class="text-red-600 font-bold">Ksh ${costOfGoodsSold.toFixed(2)}</span>
+                            </div>
+                            <hr class="border-gray-300">
+                            <div class="flex justify-between items-center text-lg">
+                                <span class="font-bold">Gross Profit:</span>
+                                <span class="font-bold ${grossProfit >= 0 ? 'text-green-600' : 'text-red-600'}">
+                                    Ksh ${grossProfit.toFixed(2)}
+                                </span>
+                            </div>
+                             <hr class="border-gray-300">
+                            <h5 class="font-semibold mt-4 mb-2">Operating Expenses:</h5>
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">General Expenses:</span>
+                                <span class="text-red-600 font-bold">Ksh ${operatingExpenses.toFixed(2)}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">Loan Interest Expense:</span>
+                                <span class="text-red-600 font-bold">Ksh ${loanInterestExpense.toFixed(2)}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">Depreciation Expense:</span>
+                                <span class="text-red-600 font-bold">Ksh ${depreciationExpense.toFixed(2)}</span>
+                            </div>
+                            <hr class="border-gray-300">
+                             <div class="flex justify-between items-center">
+                                <span class="font-bold">Total Operating Expenses:</span>
+                                <span class="font-bold text-red-600">
+                                    Ksh ${totalOperatingExpenses.toFixed(2)}
+                                </span>
+                            </div>
+                            <hr class="border-gray-300">
+                            <div class="flex justify-between items-center text-lg">
+                                <span class="font-bold">Net Income Before Tax:</span>
+                                <span class="font-bold ${netIncomeBeforeTax >= 0 ? 'text-green-600' : 'text-red-600'}">
+                                    Ksh ${netIncomeBeforeTax.toFixed(2)}
+                                </span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="font-medium">Income Tax Expense:</span>
+                                <span class="text-red-600 font-bold">Ksh ${incomeTaxExpense.toFixed(2)}</span>
+                            </div>
+                            <hr class="border-gray-300">
+                            <div class="flex justify-between items-center text-xl">
+                                <span class="font-bold">Net Income After Tax:</span>
+                                <span class="font-bold ${netIncomeAfterTax >= 0 ? 'text-green-600' : 'text-red-600'}">
+                                    Ksh ${netIncomeAfterTax.toFixed(2)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateBalanceSheet() {
+            const transactions = businesses[currentBusiness].transactions;
+            const allAssets = getAllAssetsForDepreciation(); 
+            const asOfDate = new Date();
+
+            const { netIncomeAfterTax, incomeTaxExpense, closingStock } = getIncomeStatementFigures(); // Get closing stock
+
+            // Start with opening balances
+            let cashAtHand = businesses[currentBusiness].openingBalances.cashAtHand || 0;
+            let cashAtBank = businesses[currentBusiness].openingBalances.cashAtBank || 0;
+            let totalLoans = businesses[currentBusiness].openingBalances.loans || 0;
+            
+            // Accumulated owner equity contributions/drawings from transactions
+            let ownerCapitalInjections = transactions.filter(t => t.type === 'owner_capital').reduce((s,t) => s + t.amount, 0);
+            let ownerDrawingsTotal = transactions.filter(t => t.type === 'owner_drawings').reduce((s,t) => s + t.amount, 0);
+
+
+            transactions.forEach(t => {
+                const amount = t.amount;
+                // Cash/Bank movements
+                if (['sale', 'loan_received', 'owner_capital'].includes(t.type)) {
+                    if (t.paymentMethod === 'cash_at_hand') cashAtHand += amount;
+                    else if (t.paymentMethod === 'cash_at_bank') cashAtBank += amount;
+                } else if (['purchase_for_resale', 'expense', 'asset_purchase', 'loan_repayment', 'owner_drawings'].includes(t.type)) {
+                    if (t.paymentMethod === 'cash_at_hand') cashAtHand -= amount;
+                    else if (t.paymentMethod === 'cash_at_bank') cashAtBank -= amount;
+                } else if (t.type === 'cash_transfer_to_bank') {
+                    cashAtHand -= amount;
+                    cashAtBank += amount;
+                }
+
+                // Loans
+                if (t.type === 'loan_received' && t.category === 'Loan') { 
+                    totalLoans += amount;
+                } else if (t.type === 'loan_repayment' && t.category === 'Loan Principal') { 
+                    totalLoans -= amount;
+                }
+            });
+
+            // Calculate Gross Fixed Assets (sum of all purchase values from opening and transactional assets)
+            let totalGrossFixedAssets = allAssets.reduce((sum, asset) => sum + asset.purchaseValue, 0);
+            
+            // Calculate Accumulated Depreciation
+            let accumulatedDepreciation = calculateDepreciation(allAssets, asOfDate);
+            
+            // Calculate Net Fixed Assets
+            let netFixedAssets = totalGrossFixedAssets - accumulatedDepreciation;
+            if (netFixedAssets < 0) netFixedAssets = 0; // Asset value cannot go below zero
+
+            const totalCurrentAssets = cashAtHand + cashAtBank + closingStock; // Closing stock is a current asset
+            const totalAssets = totalCurrentAssets + netFixedAssets;
+            
+            // Liabilities
+            const incomeTaxPayable = incomeTaxExpense; // Tax expense is a liability until paid
+            const totalLiabilities = totalLoans + incomeTaxPayable; 
+
+            // Equity (Opening Equity + Owner Capital + Net Income AFTER Tax - Owner Drawings)
+            const openingEquity = (businesses[currentBusiness].openingBalances.cashAtHand + 
+                                   businesses[currentBusiness].openingBalances.cashAtBank + 
+                                   businesses[currentBusiness].openingBalances.stock + // Opening Stock contributes to initial equity
+                                   businesses[currentBusiness].openingBalances.assets.reduce((s,a) => s + a.purchaseValue, 0)) - 
+                                  businesses[currentBusiness].openingBalances.loans;
+
+            const totalEquity = openingEquity + ownerCapitalInjections + netIncomeAfterTax - ownerDrawingsTotal; 
+
+            const container = document.getElementById('balanceSheet');
+            container.innerHTML = `
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-blue-800 mb-3">Assets</h4>
+                            <div class="space-y-2">
+                                <h5 class="font-medium text-gray-700 mt-4 mb-2">Current Assets:</h5>
+                                <div class="flex justify-between">
+                                    <span>Cash at Hand</span>
+                                    <span>Ksh ${cashAtHand.toFixed(2)}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Cash at Bank</span>
+                                    <span>Ksh ${cashAtBank.toFixed(2)}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Inventory (Closing Stock)</span>
+                                    <span>Ksh ${closingStock.toFixed(2)}</span>
+                                </div>
+                                <hr class="my-2 border-gray-300">
+                                <div class="flex justify-between font-bold text-gray-800">
+                                    <span>Total Current Assets</span>
+                                    <span>Ksh ${totalCurrentAssets.toFixed(2)}</span>
+                                </div>
+
+                                <h5 class="font-medium text-gray-700 mt-4 mb-2">Non-Current Assets:</h5>
+                                <div class="flex justify-between">
+                                    <span>Fixed Assets (Gross)</span>
+                                    <span>Ksh ${totalGrossFixedAssets.toFixed(2)}</span>
+                                </div>
+                                <div class="flex justify-between text-sm text-gray-600">
+                                    <span>Less: Accumulated Depreciation</span>
+                                    <span>(Ksh ${accumulatedDepreciation.toFixed(2)})</span>
+                                </div>
+                                <div class="flex justify-between font-bold">
+                                    <span>Net Fixed Assets</span>
+                                    <span>Ksh ${netFixedAssets.toFixed(2)}</span>
+                                </div>
+                                <hr class="my-2 border-gray-300">
+                                <div class="flex justify-between font-bold text-lg">
+                                    <span>Total Assets</span>
+                                    <span>Ksh ${totalAssets.toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-red-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-red-800 mb-3">Liabilities</h4>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span>Loans Payable</span>
+                                    <span>Ksh ${totalLoans.toFixed(2)}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Income Tax Payable</span>
+                                    <span>Ksh ${incomeTaxPayable.toFixed(2)}</span>
+                                </div>
+                                <hr>
+                                <div class="flex justify-between font-bold">
+                                    <span>Total Liabilities</span>
+                                    <span>Ksh ${totalLiabilities.toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-purple-50 p-4 rounded-lg">
+                            <h4 class="font-semibold text-purple-800 mb-3">Equity</h4>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span>Opening Equity</span>
+                                    <span>Ksh ${openingEquity.toFixed(2)}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Owner Capital Injection</span>
+                                    <span>Ksh ${ownerCapitalInjections.toFixed(2)}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Owner Drawings</span>
+                                    <span>(Ksh ${ownerDrawingsTotal.toFixed(2)})</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Net Income After Tax</span>
+                                    <span>Ksh ${netIncomeAfterTax.toFixed(2)}</span>
+                                </div>
+                                <hr>
+                                <div class="flex justify-between font-bold">
+                                    <span>Total Equity</span>
+                                    <span>Ksh ${totalEquity.toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 bg-gray-50 p-4 rounded-lg">
+                    <div class="flex justify-between font-bold text-lg">
+                        <span>Total Liabilities + Equity</span>
+                        <span>Ksh ${(totalLiabilities + totalEquity).toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateTrialBalance() {
+            const transactions = businesses[currentBusiness].transactions;
+            const allAssets = getAllAssetsForDepreciation(); 
+            const asOfDate = new Date();
+            const { incomeTaxExpense, closingStock, costOfGoodsSold, totalSales } = getIncomeStatementFigures();
+
+            // Initialize accounts with zero balances
+            const accounts = {
+                'Cash at Hand': { debit: 0, credit: 0 },
+                'Cash at Bank': { debit: 0, credit: 0 },
+                'Inventory': { debit: 0, credit: 0 }, // Will represent Closing Stock
+                'Fixed Assets (Gross)': { debit: 0, credit: 0 },
+                'Accumulated Depreciation': { debit: 0, credit: 0 },
+                'Loans Payable': { debit: 0, credit: 0 },
+                'Sales Revenue': { debit: 0, credit: 0 },
+                // 'Purchases (for Resale)': { debit: 0, credit: 0 }, // REMOVED: Will be part of COGS
+                'Cost of Goods Sold': { debit: 0, credit: 0 }, // This will hold the calculated COGS
+                'General Expenses': { debit: 0, credit: 0 },
+                'Loan Interest Expense': { debit: 0, credit: 0 },
+                'Depreciation Expense': { debit: 0, credit: 0 }, 
+                'Income Tax Expense': { debit: 0, credit: 0 },
+                'Income Tax Payable': { debit: 0, credit: 0 },
+                'Owner Capital': { debit: 0, credit: 0 },
+                'Owner Drawings': { debit: 0, credit: 0 },
+                'Retained Earnings / Equity': { debit: 0, credit: 0 } 
+            };
+
+            // Apply Opening Balances first (these are initial debit/credit entries)
+            accounts['Cash at Hand'].debit += businesses[currentBusiness].openingBalances.cashAtHand || 0;
+            accounts['Cash at Bank'].debit += businesses[currentBusiness].openingBalances.cashAtBank || 0;
+            // Opening Stock is conceptually "consumed" into COGS, so Inventory on TB is closing.
+            // No direct debit for opening stock here; it's part of the COGS calculation.
+            accounts['Loans Payable'].credit += businesses[currentBusiness].openingBalances.loans || 0;
+            
+            // Add opening fixed assets to Fixed Assets (Gross)
+            accounts['Fixed Assets (Gross)'].debit += (businesses[currentBusiness].openingBalances.assets || []).reduce((s,a) => s + a.purchaseValue, 0);
+
+            // Calculate initial Equity from opening balances (Assets - Liabilities)
+            const initialOpeningEquityAssets = (businesses[currentBusiness].openingBalances.cashAtHand || 0) + 
+                                               (businesses[currentBusiness].openingBalances.cashAtBank || 0) + 
+                                               (businesses[currentBusiness].openingBalances.stock || 0) + // Opening stock contributes to initial equity
+                                               (businesses[currentBusiness].openingBalances.assets || []).reduce((s,a) => s + a.purchaseValue, 0);
+            const initialOpeningEquityLiabilities = (businesses[currentBusiness].openingBalances.loans || 0);
+            const initialOpeningEquity = initialOpeningEquityAssets - initialOpeningEquityLiabilities;
+            accounts['Retained Earnings / Equity'].credit += initialOpeningEquity; // Initial equity is a credit balance
+
+
+            // Process transactions to update account balances
+            transactions.forEach(t => {
+                const amount = t.amount;
+                switch (t.type) {
+                    case 'sale':
+                        accounts['Sales Revenue'].credit += amount; // Revenue is credit
+                        if (t.paymentMethod === 'cash_at_hand') accounts['Cash at Hand'].debit += amount;
+                        else if (t.paymentMethod === 'cash_at_bank') accounts['Cash at Bank'].debit += amount;
+                        break;
+                    case 'purchase_for_resale':
+                        // Purchases for resale directly impact COGS calculation, not a separate TB line
+                        if (t.paymentMethod === 'cash_at_hand') accounts['Cash at Hand'].credit += amount;
+                        else if (t.paymentMethod === 'cash_at_bank') accounts['Cash at Bank'].credit += amount;
+                        break;
+                    case 'expense':
+                        accounts['General Expenses'].debit += amount; // Expenses are debit
+                        if (t.paymentMethod === 'cash_at_hand') accounts['Cash at Hand'].credit += amount;
+                        else if (t.paymentMethod === 'cash_at_bank') accounts['Cash at Bank'].credit += amount;
+                        break;
+                    case 'asset_purchase':
+                        accounts['Fixed Assets (Gross)'].debit += amount; // Assets are debit
+                        if (t.paymentMethod === 'cash_at_hand') accounts['Cash at Hand'].credit += amount;
+                        else if (t.paymentMethod === 'cash_at_bank') accounts['Cash at Bank'].credit += amount;
+                        break;
+                    case 'loan_received':
+                        accounts['Loans Payable'].credit += amount; // Loans are credit (liability)
+                        if (t.paymentMethod === 'cash_at_hand') accounts['Cash at Hand'].debit += amount;
+                        else if (t.paymentMethod === 'cash_at_bank') accounts['Cash at Bank'].debit += amount;
+                        break;
+                    case 'loan_repayment':
+                        if (t.category === 'Loan Principal') { 
+                            accounts['Loans Payable'].debit += amount; // Decreases loan liability (debit)
+                        } else if (t.category === 'Loan Interest') { 
+                            accounts['Loan Interest Expense'].debit += amount; // Interest is an expense (debit)
+                        }
+                        // Repayment decreases Cash/Bank
+                        if (t.paymentMethod === 'cash_at_hand') accounts['Cash at Hand'].credit += amount;
+                        else if (t.paymentMethod === 'cash_at_bank') accounts['Cash at Bank'].credit += amount;
+                        break;
+                    case 'owner_capital':
+                        accounts['Owner Capital'].credit += amount; // Capital is credit
+                        if (t.paymentMethod === 'cash_at_hand') accounts['Cash at Hand'].debit += amount;
+                        else if (t.paymentMethod === 'cash_at_bank') accounts['Cash at Bank'].debit += amount;
+                        break;
+                    case 'owner_drawings':
+                        accounts['Owner Drawings'].debit += amount; // Drawings are debit (contra-equity)
+                        if (t.paymentMethod === 'cash_at_hand') accounts['Cash at Hand'].credit += amount;
+                        else if (t.paymentMethod === 'cash_at_bank') accounts['Cash at Bank'].credit += amount;
+                        break;
+                    case 'cash_transfer_to_bank':
+                        accounts['Cash at Hand'].credit += amount; // Cash at hand decreases (credit)
+                        accounts['Cash at Bank'].debit += amount;   // Cash at bank increases (debit)
+                        break;
+                }
+            });
+
+            // Adjustments for the Trial Balance presentation based on calculated figures
+            // Inventory account should reflect the *closing stock* value for the Trial Balance.
+            accounts['Inventory'].debit = closingStock; 
+
+            // Accumulated Depreciation (Contra-Asset: credit balance)
+            accounts['Accumulated Depreciation'].credit += calculateDepreciation(allAssets, asOfDate);
+            // Depreciation Expense (Expense: debit balance)
+            accounts['Depreciation Expense'].debit += calculateDepreciation(allAssets, asOfDate);
+
+            // Cost of Goods Sold is an expense (debit)
+            accounts['Cost of Goods Sold'].debit += costOfGoodsSold; 
+            
+            // Income Tax Expense (debit) and Income Tax Payable (credit)
+            accounts['Income Tax Expense'].debit += incomeTaxExpense;
+            accounts['Income Tax Payable'].credit += incomeTaxExpense;
+
+            // Consolidate final balances for display
+            const finalBalances = {};
+            for (const account in accounts) {
+                let balance = accounts[account].debit - accounts[account].credit;
+                // Only include non-zero balances (with a small tolerance for floating point)
+                if (Math.abs(balance) > 0.001) { 
+                    finalBalances[account] = {
+                        debit: balance > 0 ? balance : 0,
+                        credit: balance < 0 ? Math.abs(balance) : 0
+                    };
+                }
+            }
+            
+            let totalDebits = 0;
+            let totalCredits = 0;
+
+            const tableRows = Object.keys(finalBalances).sort().map(accountName => {
+                const { debit, credit } = finalBalances[accountName];
+                totalDebits += debit;
+                totalCredits += credit;
+                return `
+                    <tr class="border-b">
+                        <td class="p-2">${accountName}</td>
+                        <td class="p-2 text-right">Ksh ${debit.toFixed(2)}</td>
+                        <td class="p-2 text-right">Ksh ${credit.toFixed(2)}</td>
+                    </tr>
+                `;
+            }).join('');
+
+
+            const container = document.getElementById('trialBalance');
+            container.innerHTML = `
+                <div class="overflow-x-auto bg-white p-4 rounded-lg">
+                    <table class="w-full text-sm text-gray-700">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="p-3 text-left">Account</th>
+                                <th class="p-3 text-right">Debit</th>
+                                <th class="p-3 text-right">Credit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                            <tr class="border-t-2 border-gray-400 font-bold">
+                                <td class="p-3 text-left">Total</td>
+                                <td class="p-3 text-right">Ksh ${totalDebits.toFixed(2)}</td>
+                                <td class="p-3 text-right">Ksh ${totalCredits.toFixed(2)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="text-sm mt-4 text-gray-600">
+                        ${Math.abs(totalDebits - totalCredits) < 0.01 ? 
+                            '<span class="text-green-600">Trial Balance is balanced!</span>' : 
+                            `<span class="text-red-600">Trial Balance is NOT balanced. Difference: Ksh ${(totalDebits - totalCredits).toFixed(2)}</span>`
+                        }
+                    </p>
+                </div>
+            `;
+        }
+
+        // Functions for Opening Balances UI and logic
+        function updateOpeningBalancesUI() {
+            if (!currentBusiness) return;
+
+            const opBal = businesses[currentBusiness].openingBalances;
+            // Ensure values are numbers before toFixed, providing default if NaN
+            document.getElementById('openingCashAtHand').value = (opBal.cashAtHand || 0).toFixed(2);
+            document.getElementById('openingCashAtBank').value = (opBal.cashAtBank || 0).toFixed(2);
+            document.getElementById('openingStock').value = (opBal.stock || 0).toFixed(2); 
+            document.getElementById('openingLoans').value = (opBal.loans || 0).toFixed(2);
+
+
+            const openingAssetsList = document.getElementById('openingAssetsList');
+            if (opBal.assets.length === 0) {
+                openingAssetsList.innerHTML = '<p class="text-gray-500 text-center py-4">No opening assets added yet.</p>';
+            } else {
+                openingAssetsList.innerHTML = opBal.assets.map(asset => `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <div class="font-medium text-gray-800">${asset.description}</div>
+                            <div class="text-sm text-gray-500">Value: Ksh ${asset.purchaseValue.toFixed(2)} | Dep Rate: ${asset.depreciationRate}% | Date: ${asset.purchaseDate}</div>
+                        </div>
+                        <button onclick="deleteOpeningAsset(${asset.id})" class="text-red-500 hover:text-red-700 text-sm font-medium">Delete</button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function addOpeningAsset() {
+            if (!currentBusiness) {
+                alert('Please select a business entity first.');
+                return;
+            }
+            const desc = document.getElementById('newOpeningAssetDesc').value.trim();
+            const value = parseFloat(document.getElementById('newOpeningAssetValue').value);
+            const depreciationRate = parseFloat(document.getElementById('newOpeningAssetDepreciationRate').value);
+            const date = document.getElementById('newOpeningAssetDate').value;
+
+            if (!desc || isNaN(value) || value <= 0 || isNaN(depreciationRate) || depreciationRate < 0 || depreciationRate > 100 || !date) {
+                alert('Please fill in all valid fields for the opening asset, including a depreciation rate between 0 and 100.');
+                return;
+            }
+
+            const newAsset = {
+                id: Date.now(),
+                description: desc,
+                purchaseValue: value,
+                depreciationRate: depreciationRate,
+                purchaseDate: date
+            };
+
+            businesses[currentBusiness].openingBalances.assets.push(newAsset);
+            saveBusinesses();
+            updateOpeningBalancesUI();
+            updateAllReports(); 
+            alert('Opening asset added successfully!');
+
+            // Clear form
+            document.getElementById('newOpeningAssetDesc').value = '';
+            document.getElementById('newOpeningAssetValue').value = '';
+            document.getElementById('newOpeningAssetDepreciationRate').value = '';
+            document.getElementById('newOpeningAssetDate').valueAsDate = new Date();
+        }
+
+        function deleteOpeningAsset(id) {
+            if (!currentBusiness) return;
+
+            if (confirm('Are you sure you want to delete this opening asset?')) {
+                businesses[currentBusiness].openingBalances.assets = businesses[currentBusiness].openingBalances.assets.filter(asset => asset.id !== id);
+                saveBusinesses();
+                updateOpeningBalancesUI();
+                updateAllReports(); 
+                alert('Opening asset deleted successfully!');
+            }
+        }
+
+        function saveOpeningBalances() {
+            if (!currentBusiness) {
+                alert('Please select a business entity first.');
+                return;
+            }
+
+            // Safely parse values, defaulting to 0 if NaN
+            businesses[currentBusiness].openingBalances.cashAtHand = parseFloat(document.getElementById('openingCashAtHand').value) || 0;
+            businesses[currentBusiness].openingBalances.cashAtBank = parseFloat(document.getElementById('openingCashAtBank').value) || 0;
+            businesses[currentBusiness].openingBalances.stock = parseFloat(document.getElementById('openingStock').value) || 0; 
+            businesses[currentBusiness].openingBalances.loans = parseFloat(document.getElementById('openingLoans').value) || 0;
+
+            saveBusinesses();
+            updateAllReports(); // Recalculate all reports as opening balances affect them
+            alert('Opening balances saved successfully!');
+            updateOpeningBalancesUI(); // Update UI to reflect saved values
+        }
+
+        // New Tax Calculation UI and Logic
+        function updateTaxCalculationUI() {
+            if (!currentBusiness) return;
+            const { netIncomeBeforeTax, incomeTaxExpense, netIncomeAfterTax } = getIncomeStatementFigures();
+
+            document.getElementById('taxRateInput').value = businesses[currentBusiness].taxRate;
+            document.getElementById('netIncomeBeforeTax').textContent = `Ksh ${netIncomeBeforeTax.toFixed(2)}`;
+            document.getElementById('incomeTaxExpense').textContent = `Ksh ${incomeTaxExpense.toFixed(2)}`;
+            document.getElementById('netIncomeAfterTax').textContent = `Ksh ${netIncomeAfterTax.toFixed(2)}`;
+        }
+
+        function saveTaxRate() {
+            if (!currentBusiness) return;
+            let taxRate = parseFloat(document.getElementById('taxRateInput').value);
+            if (isNaN(taxRate) || taxRate < 0 || taxRate > 100) {
+                alert('Please enter a valid tax rate between 0 and 100.');
+                taxRate = businesses[currentBusiness].taxRate; // Revert to last saved
+            }
+            businesses[currentBusiness].taxRate = taxRate;
+            saveBusinesses();
+            updateTaxCalculationUI(); // Update immediately
+            updateAllReports(); // Recalculate all reports affected by tax
+        }
+
+
+        function exportToExcel() {
+            if (!currentBusiness) {
+                alert('Please select a business entity first');
+                return;
+            }
+
+            const business = businesses[currentBusiness];
+            const wb = XLSX.utils.book_new();
+
+            // 1. Transactions sheet
+            const transactionsWS = XLSX.utils.json_to_sheet(business.transactions);
+            XLSX.utils.book_append_sheet(wb, transactionsWS, 'Transactions');
+
+            // 2. Assets sheet (transactional assets)
+            const assetsWS = XLSX.utils.json_to_sheet(business.assets);
+            XLSX.utils.book_append_sheet(wb, assetsWS, 'Transactional Assets');
+
+            // 3. Opening Balances sheet (new)
+            const openingBalancesData = getOpeningBalancesDataForExport();
+            const openingBalancesWS = XLSX.utils.aoa_to_sheet(openingBalancesData);
+            XLSX.utils.book_append_sheet(wb, openingBalancesWS, 'Opening Balances');
+
+            // 4. Income Statement Summary
+            const incomeData = getIncomeStatementDataForExport();
+            const incomeWS = XLSX.utils.aoa_to_sheet(incomeData);
+            XLSX.utils.book_append_sheet(wb, incomeWS, 'Income Statement');
+
+            // 5. Balance Sheet Summary
+            const balanceData = getBalanceSheetDataForExport();
+            const balanceWS = XLSX.utils.aoa_to_sheet(balanceData);
+            XLSX.utils.book_append_sheet(wb, balanceWS, 'Balance Sheet');
+
+            // 6. Trial Balance
+            const trialBalanceData = getTrialBalanceDataForExport();
+            const trialBalanceWS = XLSX.utils.aoa_to_sheet(trialBalanceData);
+            XLSX.utils.book_append_sheet(wb, trialBalanceWS, 'Trial Balance');
+
+            // 7. Tax Calculation Summary
+            const taxCalculationData = getTaxCalculationDataForExport();
+            const taxCalculationWS = XLSX.utils.aoa_to_sheet(taxCalculationData);
+            XLSX.utils.book_append_sheet(wb, taxCalculationWS, 'Tax Calculation');
+
+            // 8. Summary sheet
+            const summaryData = [
+                ['Business Entity Name', business.name],
+                ['Export Date', new Date().toLocaleDateString()],
+                ['Total Transactions', business.transactions.length],
+                [''],
+                ['Summary by Type'],
+                ['Sales', business.transactions.filter(t => t.type === 'sale').reduce((s, t) => s + t.amount, 0)],
+                ['Purchases (for Resale)', business.transactions.filter(t => t.type === 'purchase_for_resale').reduce((s, t) => s + t.amount, 0)],
+                ['Expenses', business.transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)],
+                ['Assets Purchased', business.transactions.filter(t => t.type === 'asset_purchase').reduce((s, t) => s + t.amount, 0)],
+                ['Loans Received', business.transactions.filter(t => t.type === 'loan_received').reduce((s, t) => s + t.amount, 0)],
+                ['Loan Repayments', business.transactions.filter(t => t.type === 'loan_repayment').reduce((s, t) => s + t.amount, 0)],
+                ['Owner Capital', business.transactions.filter(t => t.type === 'owner_capital').reduce((s, t) => s + t.amount, 0)],
+                ['Owner Drawings', business.transactions.filter(t => t.type === 'owner_drawings').reduce((s, t) => s + t.amount, 0)],
+                ['Cash Transfers to Bank', business.transactions.filter(t => t.type === 'cash_transfer_to_bank').reduce((s, t) => s + t.amount, 0)]
+            ];
+            const summaryWS = XLSX.utils.aoa_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, summaryWS, 'Summary');
+
+            // Download file
+            XLSX.writeFile(wb, `${business.name}_bookkeeping.xlsx`);
+        }
+
+        // Helper function to get Income Statement data for Excel
+        function getIncomeStatementDataForExport() {
+            const {
+                totalSales,
+                openingStock,
+                totalPurchasesForResale,
+                closingStock,
+                costOfGoodsSold,
+                grossProfit,
+                operatingExpenses,
+                loanInterestExpense,
+                depreciationExpense,
+                totalOperatingExpenses,
+                netIncomeBeforeTax,
+                incomeTaxExpense,
+                netIncomeAfterTax
+            } = getIncomeStatementFigures();
+
+            return [
+                ['Income Statement'],
+                ['Reporting Period', 'All Time (Calculated with provided Closing Stock)'], 
+                [],
+                ['Revenue:'],
+                ['Total Sales', totalSales.toFixed(2)],
+                [],
+                ['Cost of Goods Sold (COGS):'],
+                ['Opening Stock', openingStock.toFixed(2)],
+                ['Add: Purchases for Resale', totalPurchasesForResale.toFixed(2)],
+                ['Less: Closing Stock', `(${closingStock.toFixed(2)})`],
+                ['Cost of Goods Sold', costOfGoodsSold.toFixed(2)],
+                [],
+                ['Gross Profit', grossProfit.toFixed(2)],
+                [],
+                ['Operating Expenses:'],
+                ['General Expenses', operatingExpenses.toFixed(2)],
+                ['Loan Interest Expense', loanInterestExpense.toFixed(2)],
+                ['Depreciation Expense', depreciationExpense.toFixed(2)],
+                ['Total Operating Expenses', totalOperatingExpenses.toFixed(2)],
+                [],
+                ['Net Income Before Tax', netIncomeBeforeTax.toFixed(2)],
+                ['Income Tax Expense', incomeTaxExpense.toFixed(2)],
+                ['Net Income After Tax', netIncomeAfterTax.toFixed(2)]
+            ];
+        }
+
+        // Helper function to get Balance Sheet data for Excel
+        function getBalanceSheetDataForExport() {
+            const transactions = businesses[currentBusiness].transactions;
+            const allAssets = getAllAssetsForDepreciation();
+            const asOfDate = new Date();
+
+            const { netIncomeAfterTax, incomeTaxExpense, closingStock } = getIncomeStatementFigures();
+
+            let cashAtHand = businesses[currentBusiness].openingBalances.cashAtHand || 0;
+            let cashAtBank = businesses[currentBusiness].openingBalances.cashAtBank || 0;
+            let totalLoans = businesses[currentBusiness].openingBalances.loans || 0;
+            let ownerCapitalInjections = transactions.filter(t => t.type === 'owner_capital').reduce((s,t) => s + t.amount, 0);
+            let ownerDrawingsTotal = transactions.filter(t => t.type === 'owner_drawings').reduce((s,t) => s + t.amount, 0);
+
+
+            transactions.forEach(t => {
+                const amount = t.amount;
+                if (['sale', 'loan_received', 'owner_capital'].includes(t.type)) {
+                    if (t.paymentMethod === 'cash_at_hand') cashAtHand += amount;
+                    else if (t.paymentMethod === 'cash_at_bank') cashAtBank += amount;
+                } else if (['purchase_for_resale', 'expense', 'asset_purchase', 'loan_repayment', 'owner_drawings'].includes(t.type)) {
+                    if (t.paymentMethod === 'cash_at_hand') cashAtHand -= amount;
+                    else if (t.paymentMethod === 'cash_at_bank') cashAtBank -= amount;
+                } else if (t.type === 'cash_transfer_to_bank') {
+                    cashAtHand -= amount;
+                    cashAtBank += amount;
+                }
+
+                if (t.type === 'loan_received' && t.category === 'Loan') { 
+                    totalLoans += amount;
+                } else if (t.type === 'loan_repayment' && t.category === 'Loan Principal') { 
+                    totalLoans -= amount;
+                }
+            });
+
+            let totalGrossFixedAssets = allAssets.reduce((sum, asset) => sum + asset.purchaseValue, 0);
+            let accumulatedDepreciation = calculateDepreciation(allAssets, asOfDate);
+            let netFixedAssets = totalGrossFixedAssets - accumulatedDepreciation;
+            if (netFixedAssets < 0) netFixedAssets = 0;
+
+            const totalCurrentAssets = cashAtHand + cashAtBank + closingStock;
+            const totalAssets = totalCurrentAssets + netFixedAssets;
+            const incomeTaxPayable = incomeTaxExpense; 
+            const totalLiabilities = totalLoans + incomeTaxPayable; 
+
+            const openingEquity = (businesses[currentBusiness].openingBalances.cashAtHand + 
+                                   businesses[currentBusiness].openingBalances.cashAtBank + 
+                                   businesses[currentBusiness].openingBalances.stock + 
+                                   businesses[currentBusiness].openingBalances.assets.reduce((s,a) => s + a.purchaseValue, 0)) - 
+                                  businesses[currentBusiness].openingBalances.loans;
+
+            const totalEquity = openingEquity + ownerCapitalInjections + netIncomeAfterTax - ownerDrawingsTotal; 
+
+            return [
+                ['Balance Sheet'],
+                ['As of', asOfDate.toLocaleDateString()],
+                [],
+                ['Assets'],
+                ['Current Assets:'],
+                ['Cash at Hand', cashAtHand.toFixed(2)],
+                ['Cash at Bank', cashAtBank.toFixed(2)],
+                ['Inventory (Closing Stock)', closingStock.toFixed(2)],
+                ['Total Current Assets', totalCurrentAssets.toFixed(2)],
+                [],
+                ['Non-Current Assets:'],
+                ['Fixed Assets (Gross)', totalGrossFixedAssets.toFixed(2)],
+                ['Less: Accumulated Depreciation', `(${accumulatedDepreciation.toFixed(2)})`],
+                ['Net Fixed Assets', netFixedAssets.toFixed(2)],
+                ['Total Assets', totalAssets.toFixed(2)],
+                [],
+                ['Liabilities'],
+                ['Loans Payable', totalLoans.toFixed(2)],
+                ['Income Tax Payable', incomeTaxPayable.toFixed(2)],
+                ['Total Liabilities', totalLiabilities.toFixed(2)],
+                [],
+                ['Equity'],
+                ['Opening Equity', openingEquity.toFixed(2)],
+                ['Owner Capital Injection', ownerCapitalInjections.toFixed(2)],
+                ['Owner Drawings', `(${ownerDrawingsTotal.toFixed(2)})`],
+                ['Net Income After Tax', netIncomeAfterTax.toFixed(2)],
+                ['Total Equity', totalEquity.toFixed(2)],
+                [],
+                ['Total Liabilities + Equity', (totalLiabilities + totalEquity).toFixed(2)]
+            ];
+        }
+
+        // Helper function to get Trial Balance data for Excel
+        function getTrialBalanceDataForExport() {
+            const transactions = businesses[currentBusiness].transactions;
+            const allAssets = getAllAssetsForDepreciation();
+            const asOfDate = new Date();
+            const { incomeTaxExpense, closingStock, costOfGoodsSold } = getIncomeStatementFigures();
+
+
+            const accounts = {
+                'Cash at Hand': { debit: 0, credit: 0 },
+                'Cash at Bank': { debit: 0, credit: 0 },
+                'Inventory': { debit: 0, credit: 0 }, 
+                'Fixed Assets (Gross)': { debit: 0, credit: 0 },
+                'Accumulated Depreciation': { debit: 0, credit: 0 },
+                'Loans Payable': { debit: 0, credit: 0 },
+                'Sales Revenue': { debit: 0, credit: 0 },
+                'Cost of Goods Sold': { debit: 0, credit: 0 }, 
+                'General Expenses': { debit: 0, credit: 0 },
+                'Loan Interest Expense': { debit: 0, credit: 0 },
+                'Depreciation Expense': { debit: 0, credit: 0 }, 
+                'Income Tax Expense': { debit: 0, credit: 0 },
+                'Income Tax Payable': { debit: 0, credit: 0 },
+                'Owner Capital': { debit: 0, credit: 0 },
+                'Owner Drawings': { debit: 0, credit: 0 },
+                'Retained Earnings / Equity': { debit: 0, credit: 0 } 
+            };
+
+            // Apply Opening Balances first
+            accounts['Cash at Hand'].debit += businesses[currentBusiness].openingBalances.cashAtHand || 0;
+            accounts['Cash at Bank'].debit += businesses[currentBusiness].openingBalances.cashAtBank || 0;
+            accounts['Loans Payable'].credit += businesses[currentBusiness].openingBalances.loans || 0;
+            accounts['Fixed Assets (Gross)'].debit += (businesses[currentBusiness].openingBalances.assets || []).reduce((s,a) => s + a.purchaseValue, 0);
+
+            const initialOpeningEquityAssets = (businesses[currentBusiness].openingBalances.cashAtHand || 0) + 
+                                               (businesses[currentBusiness].openingBalances.cashAtBank || 0) + 
+                                               (businesses[currentBusiness].openingBalances.stock || 0) + 
+                                               (businesses[currentBusiness].openingBalances.assets || []).reduce((s,a) => s + a.purchaseValue, 0);
+            const initialOpeningEquityLiabilities = (businesses[currentBusiness].openingBalances.loans || 0);
+            const initialOpeningEquity = initialOpeningEquityAssets - initialOpeningEquityLiabilities;
+            accounts['Retained Earnings / Equity'].credit += initialOpeningEquity;
+
+            transactions.forEach(t => {
+                const amount = t.amount;
+                switch (t.type) {
+                    case 'sale':
+                        accounts['Sales Revenue'].credit += amount;
+                        if (t.paymentMethod === 'cash_at_hand') accounts['Cash at Hand'].debit += amount;
+                        else if (t.paymentMethod === 'cash_at_bank') accounts['Cash at Bank'].debit += amount;
+                        break;
+                    case 'purchase_for_resale':
+                        // Handled by COGS calculation, no separate account on TB for this
+                        if (t.paymentMethod === 'cash_at_hand') accounts['Cash at Hand'].credit += amount;
+                        else if (t.paymentMethod === 'cash_at_bank') accounts['Cash at Bank'].credit += amount;
+                        break;
+                    case 'expense':
+                        accounts['General Expenses'].debit += amount;
+                        if (t.paymentMethod === 'cash_at_hand') accounts['Cash at Hand'].credit += amount;
+                        else if (t.paymentMethod === 'cash_at_bank') accounts['Cash at Bank'].credit += amount;
+                        break;
+                    case 'asset_purchase':
+                        accounts['Fixed Assets (Gross)'].debit += amount; // Increases asset value
+                        if (t.paymentMethod === 'cash_at_hand') accounts['Cash at Hand'].credit += amount;
+                        else if (t.paymentMethod === 'cash_at_bank') accounts['Cash at Bank'].credit += amount;
+                        break;
+                    case 'loan_received':
+                        accounts['Loans Payable'].credit += amount;
+                        if (t.paymentMethod === 'cash_at_hand') accounts['Cash at Hand'].debit += amount;
+                        else if (t.paymentMethod === 'cash_at_bank') accounts['Cash at Bank'].debit += amount;
+                        break;
+                    case 'loan_repayment':
+                        if (t.category === 'Loan Principal') {
+                            accounts['Loans Payable'].debit += amount;
+                        } else if (t.category === 'Loan Interest') {
+                            accounts['Loan Interest Expense'].debit += amount;
+                        }
+                        if (t.paymentMethod === 'cash_at_hand') accounts['Cash at Hand'].credit += amount;
+                        else if (t.paymentMethod === 'cash_at_bank') accounts['Cash at Bank'].credit += amount;
+                        break;
+                    case 'owner_capital':
+                        accounts['Owner Capital'].credit += amount;
+                        if (t.paymentMethod === 'cash_at_hand') accounts['Cash at Hand'].debit += amount;
+                        else if (t.paymentMethod === 'cash_at_bank') accounts['Cash at Bank'].debit += amount;
+                        break;
+                    case 'owner_drawings':
+                        accounts['Owner Drawings'].debit += amount;
+                        if (t.paymentMethod === 'cash_at_hand') accounts['Cash at Hand'].credit += amount;
+                        else if (t.paymentMethod === 'cash_at_bank') accounts['Cash at Bank'].credit += amount;
+                        break;
+                    case 'cash_transfer_to_bank':
+                        accounts['Cash at Hand'].credit += amount;
+                        accounts['Cash at Bank'].debit += amount;
+                        break;
+                }
+            });
+
+            // Post-transaction adjustments for Trial Balance
+            accounts['Inventory'].debit = closingStock; // Inventory account reflects closing stock
+
+            // Accumulated Depreciation and Depreciation Expense
+            accounts['Accumulated Depreciation'].credit += calculateDepreciation(allAssets, asOfDate);
+            accounts['Depreciation Expense'].debit += calculateDepreciation(allAssets, asOfDate);
+            
+            // Cost of Goods Sold is an expense, so it should be a debit.
+            accounts['Cost of Goods Sold'].debit = costOfGoodsSold;
+
+            // Income Tax Expense (debit) and Income Tax Payable (credit)
+            accounts['Income Tax Expense'].debit = incomeTaxExpense;
+            accounts['Income Tax Payable'].credit = incomeTaxExpense;
+
+            const finalBalances = {};
+            for (const account in accounts) {
+                let balance = accounts[account].debit - accounts[account].credit;
+                // Use a small epsilon for floating-point comparison to treat very small numbers as zero
+                if (Math.abs(balance) > 0.001) { 
+                    finalBalances[account] = {
+                        debit: balance > 0 ? balance : 0,
+                        credit: balance < 0 ? Math.abs(balance) : 0
+                    };
+                }
+            }
+
+            let exportArray = [
+                ['Trial Balance'],
+                ['As of', asOfDate.toLocaleDateString()],
+                [],
+                ['Account', 'Debit (Ksh)', 'Credit (Ksh)']
+            ];
+
+            let totalDebits = 0;
+            let totalCredits = 0;
+
+            Object.keys(finalBalances).sort().forEach(accountName => {
+                const { debit, credit } = finalBalances[accountName];
+                exportArray.push([accountName, debit.toFixed(2), credit.toFixed(2)]);
+                totalDebits += debit;
+                totalCredits += credit;
+            });
+
+            exportArray.push([]);
+            exportArray.push(['Total', totalDebits.toFixed(2), totalCredits.toFixed(2)]);
+            
+            return exportArray;
+        }
+
+        // Helper function to get Opening Balances data for Excel
+        function getOpeningBalancesDataForExport() {
+            const opBal = businesses[currentBusiness].openingBalances;
+            let exportArray = [
+                ['Opening Balances'],
+                ['Business Entity Name', businesses[currentBusiness].name],
+                ['Date', new Date().toLocaleDateString()],
+                [],
+                ['Account', 'Amount (Ksh)']
+            ];
+
+            exportArray.push(['Cash at Hand', (opBal.cashAtHand || 0).toFixed(2)]);
+            exportArray.push(['Cash at Bank', (opBal.cashAtBank || 0).toFixed(2)]);
+            exportArray.push(['Stock / Inventory (Beginning Balance)', (opBal.stock || 0).toFixed(2)]);
+            exportArray.push(['Loans Payable', (opBal.loans || 0).toFixed(2)]);
+            exportArray.push([]);
+            exportArray.push(['Opening Fixed Assets']);
+            exportArray.push(['Description', 'Purchase Value (Ksh)', 'Depreciation Rate (%)', 'Purchase Date']);
+            
+            opBal.assets.forEach(asset => {
+                exportArray.push([asset.description, asset.purchaseValue.toFixed(2), asset.depreciationRate, asset.purchaseDate]);
+            });
+
+            return exportArray;
+        }
+
+        // Helper function to get Tax Calculation data for Excel
+        function getTaxCalculationDataForExport() {
+            const { netIncomeBeforeTax, incomeTaxExpense, netIncomeAfterTax } = getIncomeStatementFigures();
+            const taxRate = businesses[currentBusiness].taxRate || 0;
+
+            return [
+                ['Tax Calculation'],
+                ['Business Entity Name', businesses[currentBusiness].name],
+                ['As of', new Date().toLocaleDateString()],
+                [],
+                ['Kenyan Corporate Tax Rate (%)', taxRate.toFixed(1)],
+                [],
+                ['Net Income Before Tax', netIncomeBeforeTax.toFixed(2)],
+                ['Income Tax Expense', incomeTaxExpense.toFixed(2)],
+                ['Net Income After Tax', netIncomeAfterTax.toFixed(2)]
+            ];
+        }
+
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    let importedTransactions = [];
+                    let importedTransactionalAssets = []; 
+                    let importedOpeningBalances = {
+                        cashAtHand: 0,
+                        cashAtBank: 0,
+                        stock: 0, 
+                        assets: [], 
+                        loans: 0
+                    };
+                    let importedTaxRate = 30; // Default if not found in import
+
+                    // Try to read Transactions sheet
+                    const transactionsSheetName = workbook.SheetNames.find(name => name === 'Transactions');
+                    if (transactionsSheetName) {
+                        const worksheet = workbook.Sheets[transactionsSheetName];
+                        let rawTransactions = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        if (rawTransactions.length > 1) {
+                            const headers = rawTransactions[0].map(h => h.toLowerCase().trim());
+                            rawTransactions.slice(1).forEach((row, index) => {
+                                const transaction = {
+                                    id: Date.now() + index,
+                                    date: row[headers.indexOf('date')],
+                                    type: row[headers.indexOf('type')]?.toLowerCase(),
+                                    description: row[headers.indexOf('description')],
+                                    amount: parseFloat(row[headers.indexOf('amount')]),
+                                    category: row[headers.indexOf('category')] || 'General',
+                                    paymentMethod: row[headers.indexOf('paymentmethod')] || 'cash_at_hand',
+                                    depreciationRate: parseFloat(row[headers.indexOf('depreciationrate')]) || 0 
+                                };
+                                if (['sale', 'purchase_for_resale', 'expense', 'asset_purchase', 'loan_received', 'loan_repayment', 'owner_capital', 'owner_drawings', 'cash_transfer_to_bank'].includes(transaction.type) && !isNaN(transaction.amount) && transaction.amount > 0) {
+                                    if (transaction.type === 'asset_purchase' && !isNaN(transaction.depreciationRate)) {
+                                        importedTransactionalAssets.push({
+                                            transactionId: transaction.id,
+                                            purchaseDate: transaction.date,
+                                            purchaseValue: transaction.amount,
+                                            depreciationRate: transaction.depreciationRate,
+                                            description: transaction.description
+                                        });
+                                    }
+                                    importedTransactions.push(transaction);
+                                }
+                            });
+                        }
+                    }
+
+                    // Try to read Opening Balances sheet
+                    const openingBalancesSheetName = workbook.SheetNames.find(name => name === 'Opening Balances');
+                    if (openingBalancesSheetName) {
+                        const worksheet = workbook.Sheets[openingBalancesSheetName];
+                        let rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        if (rawData.length > 0) {
+                            rawData.forEach(row => {
+                                if (row[0] === 'Cash at Hand') importedOpeningBalances.cashAtHand = parseFloat(row[1]) || 0;
+                                if (row[0] === 'Cash at Bank') importedOpeningBalances.cashAtBank = parseFloat(row[1]) || 0;
+                                if (row[0].includes('Stock / Inventory')) importedOpeningBalances.stock = parseFloat(row[1]) || 0; 
+                                if (row[0] === 'Loans Payable') importedOpeningBalances.loans = parseFloat(row[1]) || 0;
+                            });
+
+                            const assetHeaderRowIndex = rawData.findIndex(row => row[0] === 'Opening Fixed Assets');
+                            if (assetHeaderRowIndex !== -1 && rawData.length > assetHeaderRowIndex + 2) { 
+                                const assetHeaders = rawData[assetHeaderRowIndex + 1].map(h => h.toLowerCase().trim());
+                                for (let i = assetHeaderRowIndex + 2; i < rawData.length; i++) {
+                                    const row = rawData[i];
+                                    if (row.length >= 4) { 
+                                        importedOpeningBalances.assets.push({
+                                            id: Date.now() + i, 
+                                            description: row[assetHeaders.indexOf('description')],
+                                            purchaseValue: parseFloat(row[assetHeaders.indexOf('purchase value (ksh)')]),
+                                            depreciationRate: parseFloat(row[assetHeaders.indexOf('depreciation rate (%)')]), 
+                                            purchaseDate: row[assetHeaders.indexOf('purchase date')]
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Try to read Tax Calculation sheet for tax rate
+                    const taxCalculationSheetName = workbook.SheetNames.find(name => name === 'Tax Calculation');
+                    if (taxCalculationSheetName) {
+                        const worksheet = workbook.Sheets[taxCalculationSheetName];
+                        let rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                        rawData.forEach(row => {
+                            if (row[0] === 'Kenyan Corporate Tax Rate (%)') {
+                                importedTaxRate = parseFloat(row[1]) || importedTaxRate;
+                            }
+                        });
+                    }
+
+                    if (importedTransactions.length === 0 && importedTransactionalAssets.length === 0 && importedOpeningBalances.assets.length === 0 && importedOpeningBalances.cashAtHand === 0 && importedOpeningBalances.cashAtBank === 0 && importedOpeningBalances.stock === 0 && importedOpeningBalances.loans === 0) {
+                        alert('No valid data found in the Excel file for import.');
+                        return;
+                    }
+
+                    let businessName = prompt('Enter a business entity name for these imported transactions (e.g., "My Business"). If the entity exists, data will be added to it. Otherwise, a new entity will be created.');
+                    if (!businessName) {
+                        alert('Business entity name is required for import.');
+                        return;
+                    }
+                    businessName = businessName.trim();
+
+                    if (!businesses[businessName]) {
+                        businesses[businessName] = {
+                            name: businessName,
+                            transactions: [],
+                            assets: [],
+                            created: new Date().toISOString(),
+                            openingBalances: {
+                                cashAtHand: 0,
+                                cashAtBank: 0,
+                                stock: 0,
+                                assets: [],
+                                loans: 0
+                            },
+                            taxRate: 30 // Default for new, will be overwritten if imported
+                        };
+                    }
+
+                    businesses[businessName].transactions.push(...importedTransactions);
+                    businesses[businessName].assets.push(...importedTransactionalAssets); 
+
+                    businesses[businessName].openingBalances.cashAtHand = importedOpeningBalances.cashAtHand;
+                    businesses[businessName].openingBalances.cashAtBank = importedOpeningBalances.cashAtBank;
+                    businesses[businessName].openingBalances.stock = importedOpeningBalances.stock;
+                    businesses[businessName].openingBalances.loans = importedOpeningBalances.loans;
+                    
+                    importedOpeningBalances.assets.forEach(importedAsset => {
+                        if (!businesses[businessName].openingBalances.assets.some(a => a.id === importedAsset.id)) {
+                            businesses[businessName].openingBalances.assets.push(importedAsset);
+                        }
+                    });
+
+                    // Set imported tax rate
+                    businesses[businessName].taxRate = importedTaxRate;
+
+
+                    saveBusinesses(); 
+                    updateBusinessSelect();
+                    selectBusiness(businessName);
+                    alert(`Successfully imported data into "${businessName}".`);
+
+                } catch (error) {
+                    alert('Error reading or processing the Excel file: ' + error.message);
+                    console.error('File import error:', error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // --- Local Storage Functions ---
+        function saveBusinesses() {
+            localStorage.setItem('graciesBookkeeperData', JSON.stringify(businesses)); 
+        }
+
+        function loadBusinesses() {
+            const savedData = localStorage.getItem('graciesBookkeeperData'); 
+            if (savedData) {
+                businesses = JSON.parse(savedData);
+                // Ensure 'assets', 'openingBalances' and 'taxRate' structures exist for older saved businesses
+                for (const bizName in businesses) {
+                    if (!businesses[bizName].assets) {
+                        businesses[bizName].assets = [];
+                    }
+                    if (!businesses[bizName].openingBalances) {
+                        businesses[bizName].openingBalances = {
+                            cashAtHand: 0,
+                            cashAtBank: 0,
+                            stock: 0, // Ensure stock is initialized
+                            assets: [],
+                            loans: 0
+                        };
+                    } else if (!businesses[bizName].openingBalances.assets) {
+                        businesses[bizName].openingBalances.assets = [];
+                    }
+                    if (businesses[bizName].openingBalances.stock === undefined) { // Initialize stock if missing
+                         businesses[bizName].openingBalances.stock = 0;
+                    }
+                    if (businesses[bizName].taxRate === undefined) {
+                        businesses[bizName].taxRate = 30; // Default for existing businesses if not set
+                    }
+                    // Migrate old assets if they don't have depreciationRate
+                    businesses[bizName].assets.forEach(asset => {
+                        // If it has usefulLife but not depreciationRate, convert it
+                        if (asset.usefulLife && (asset.depreciationRate === undefined || asset.depreciationRate === null)) {
+                            asset.depreciationRate = (100 / asset.usefulLife); 
+                            delete asset.usefulLife; 
+                        }
+                        // Ensure it's always set to a number (default 0 if still undefined/null)
+                        if (asset.depreciationRate === undefined || asset.depreciationRate === null) {
+                            asset.depreciationRate = 0; 
+                        }
+                    });
+                     businesses[bizName].openingBalances.assets.forEach(asset => {
+                        // If it has usefulLife but not depreciationRate, convert it
+                        if (asset.usefulLife && (asset.depreciationRate === undefined || asset.depreciationRate === null)) {
+                            asset.depreciationRate = (100 / asset.usefulLife); 
+                            delete asset.usefulLife; 
+                        }
+                        // Ensure it's always set to a number (default 0 if still undefined/null)
+                        if (asset.depreciationRate === undefined || asset.depreciationRate === null) {
+                            asset.depreciationRate = 0; 
+                        }
+                    });
+                }
+                updateBusinessSelect();
+            }
+        }
+    </script>
+</body>
+</html>
